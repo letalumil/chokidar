@@ -10,7 +10,6 @@ var isAbsolute = require('path-is-absolute');
 var inherits = require('inherits');
 
 var NodeFsHandler = require('./lib/nodefs-handler');
-var FsEventsHandler = require('./lib/fsevents-handler');
 
 var arrify = function(value) {
   if (value == null) return [];
@@ -78,17 +77,19 @@ function FSWatcher(_opts) {
   if (undef('binaryInterval')) opts.binaryInterval = 300;
   this.enableBinaryInterval = opts.binaryInterval !== opts.interval;
 
+  opts.usePolling = true;
+  opts.useFsEvents = false;
   // Enable fsevents on OS X when polling isn't explicitly enabled.
-  if (undef('useFsEvents')) opts.useFsEvents = !opts.usePolling;
+  //if (undef('useFsEvents')) opts.useFsEvents = !opts.usePolling;
 
   // If we can't use fsevents, ensure the options reflect it's disabled.
-  if (!FsEventsHandler.canUse()) opts.useFsEvents = false;
+  //if (!FsEventsHandler.canUse()) opts.useFsEvents = false;
 
   // Use polling on Mac if not using fsevents.
   // Other platforms use non-polling fs.watch.
-  if (undef('usePolling') && !opts.useFsEvents) {
-    opts.usePolling = process.platform === 'darwin';
-  }
+  //if (undef('usePolling') && !opts.useFsEvents) {
+  //  opts.usePolling = process.platform === 'darwin';
+  //}
 
   // Editor atomic write normalization enabled by default with fs.watch
   if (undef('atomic')) opts.atomic = !opts.usePolling && !opts.useFsEvents;
@@ -588,11 +589,11 @@ FSWatcher.prototype.add = function(paths, _origAdd, _internal) {
     }
   }, this);
 
-  if (this.options.useFsEvents && FsEventsHandler.canUse()) {
-    if (!this._readyCount) this._readyCount = paths.length;
-    if (this.options.persistent) this._readyCount *= 2;
-    paths.forEach(this._addToFsEvents, this);
-  } else {
+  //if (this.options.useFsEvents && FsEventsHandler.canUse()) {
+  //  if (!this._readyCount) this._readyCount = paths.length;
+  //  if (this.options.persistent) this._readyCount *= 2;
+  //  paths.forEach(this._addToFsEvents, this);
+  //} else {
     if (!this._readyCount) this._readyCount = 0;
     this._readyCount += paths.length;
     asyncEach(paths, function(path, next) {
@@ -606,7 +607,7 @@ FSWatcher.prototype.add = function(paths, _origAdd, _internal) {
         this.add(sysPath.dirname(item), sysPath.basename(_origAdd || item));
       }, this);
     }.bind(this));
-  }
+  //}
 
   return this;
 };
@@ -678,7 +679,7 @@ function importHandler(handler) {
   });
 }
 importHandler(NodeFsHandler);
-if (FsEventsHandler.canUse()) importHandler(FsEventsHandler);
+//if (FsEventsHandler.canUse()) importHandler(FsEventsHandler);
 
 // Export FSWatcher class
 exports.FSWatcher = FSWatcher;
